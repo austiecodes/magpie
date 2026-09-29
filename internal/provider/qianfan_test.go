@@ -23,9 +23,11 @@ func TestQianfanTokenPlan(t *testing.T) {
 		t.Fatalf("endpoints: %q %q %q", p.Chat, p.Responses, p.Anthropic)
 	}
 	// the personal and the enterprise plan and pay as you go, each plan's
-	// bases under its own path, pay as you go at the v2 root
+	// bases under its own path; pay as you go at the v2 root serves its
+	// model list, and its keys are made on the IAM page
 	for _, r := range Preset("baidu-qianfan").Regions {
 		var chat, anthropic string
+		lists := r.ID == "api"
 		switch r.ID {
 		case "personal":
 			chat, anthropic = "https://qianfan.baidubce.com/v2/tokenplan/personal", "https://qianfan.baidubce.com/anthropic/tokenplan/personal"
@@ -36,8 +38,11 @@ func TestQianfanTokenPlan(t *testing.T) {
 		default:
 			t.Fatalf("region: %+v", r)
 		}
-		if r.Chat != chat || r.Responses != chat || r.Anthropic != anthropic {
-			t.Fatalf("region %s: %q %q %q", r.ID, r.Chat, r.Responses, r.Anthropic)
+		if r.Chat != chat || r.Responses != chat || r.Anthropic != anthropic || r.Lists != lists {
+			t.Fatalf("region %s: %q %q %q lists=%v", r.ID, r.Chat, r.Responses, r.Anthropic, r.Lists)
+		}
+		if r.ID == "api" && r.KeysURL != "https://console.bce.baidu.com/iam/#/iam/apikey/list" {
+			t.Fatalf("pay as you go keys: %q", r.KeysURL)
 		}
 	}
 	if len(Preset("baidu-qianfan").Regions) != 3 {
@@ -60,6 +65,15 @@ func TestQianfanTokenPlan(t *testing.T) {
 	im, _ := imported("Qianfan", "bce-v3/x", endpoints{anthropic: "https://qianfan.baidubce.com/anthropic/tokenplan/personal"}, nil)
 	if im.Preset != "baidu-qianfan" || im.Icon != "baiducloud-color" {
 		t.Fatalf("imported: %+v", im)
+	}
+	// the id the preset carried its first day still names it, and a
+	// provider saved under it is the preset since renamed
+	old, err := FromPreset("qianfan-token-plan")
+	if err != nil || old.ID != "baidu-qianfan" {
+		t.Fatalf("old id: %v %+v", err, old)
+	}
+	if p := normalize(Provider{Preset: "qianfan-token-plan"}); p.Preset != "baidu-qianfan" {
+		t.Fatalf("normalized: %+v", p)
 	}
 }
 

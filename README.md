@@ -123,6 +123,15 @@ separate Responses endpoint, `catalog=` to borrow a models.dev list, and
 `models=` to name the models to expose. Anything a preset does not know can
 be overridden the same way.
 
+Baidu Qianfan's [Token Plans](https://cloud.baidu.com/doc/qianfan/s/Dmrabu8b6)
+are available as `baidu-qianfan`: a personal (个人版) and an enterprise (企业版)
+plan and pay as you go, each with its own Chat Completions, Responses and
+Anthropic Messages endpoints, and a key that works only on its own plan. Add
+it with `magpie provider add baidu-qianfan <api-key>` — the id it carried its
+first day, `qianfan-token-plan`, is taken too. The plans serve no model list,
+so the preset carries their documented models; pay as you go serves its own
+at `/v2/models`.
+
 ### Routing groups
 
 A routing group is several models, from one provider or many, that an agent

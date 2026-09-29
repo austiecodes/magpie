@@ -56,8 +56,10 @@ type Region struct {
 	Anthropic string `json:"anthropic,omitempty"`
 	// Lists is set on a region that serves a model list although the
 	// preset as a whole has none to ask for (NoList): a provider at its
-	// endpoints is asked for it.
-	Lists bool `json:"lists,omitempty"`
+	// endpoints is asked for it. KeysURL, when the region's keys are made
+	// on another page than the preset's, is where its Get-a-key link goes.
+	Lists   bool   `json:"lists,omitempty"`
+	KeysURL string `json:"keysUrl,omitempty"`
 }
 
 // presets are ordered as they appear in the picker.
@@ -149,23 +151,24 @@ var presets = []PresetDef{
 		}},
 	// Baidu Qianfan: a personal and an enterprise Token Plan, each at its
 	// own endpoints under qianfan.baidubce.com on a key of its own; pay as
-	// you go is the v2 API at the host's root, which also serves its model
-	// list at /v2/models — the plans serve none (their /models is 404), so
-	// the models given are the plans' union as each documents them,
-	// qianfan-code-latest whichever the console has picked.
+	// you go is the v2 API at the host's root, which serves its model list
+	// at /v2/models — the plans serve none (their /models is 404), so the
+	// models given are the plans' union as each documents them, with
+	// deepseek-v4-flash, deepseek-v3.2 and glm-5 the enterprise plan's
+	// alone; qianfan-code-latest is whichever the console has picked.
 	{ID: "baidu-qianfan", Name: "Baidu Qianfan", Icon: "baiducloud-color", Kind: KindVendor,
 		Chat: "https://qianfan.baidubce.com/v2/tokenplan/personal", Responses: "https://qianfan.baidubce.com/v2/tokenplan/personal", Anthropic: "https://qianfan.baidubce.com/anthropic/tokenplan/personal",
-		Note:    "Token Plan / pay as you go",
+		Note:    "Token Plan · pay as you go",
 		Website: "https://cloud.baidu.com/doc/qianfan/s/Dmrabu8b6", KeysURL: "https://console.bce.baidu.com/qianfan/resource/token-plan",
 		RegionLabel: "Plan", Regions: []Region{
 			{ID: "personal", Name: "Token Plan Personal", Chat: "https://qianfan.baidubce.com/v2/tokenplan/personal", Responses: "https://qianfan.baidubce.com/v2/tokenplan/personal", Anthropic: "https://qianfan.baidubce.com/anthropic/tokenplan/personal"},
 			{ID: "team", Name: "Token Plan Enterprise", Chat: "https://qianfan.baidubce.com/v2/tokenplan/team", Responses: "https://qianfan.baidubce.com/v2/tokenplan/team", Anthropic: "https://qianfan.baidubce.com/anthropic/tokenplan/team"},
 			{ID: "api", Name: "Pay as you go", Chat: "https://qianfan.baidubce.com/v2", Responses: "https://qianfan.baidubce.com/v2", Anthropic: "https://qianfan.baidubce.com/anthropic",
-				Lists: true},
+				Lists: true, KeysURL: "https://console.bce.baidu.com/iam/#/iam/apikey/list"},
 		},
 		NoList: true,
 		Models: []string{"qianfan-code-latest", "deepseek-v4.1-flash", "deepseek-v4-pro", "deepseek-v4-pro-0813",
-			"deepseek-v4-flash", "deepseek-v4-flash-0731", "glm-5.3", "glm-5.3-flash", "glm-5.2", "glm-5.1", "kimi-k2.6"}},
+			"deepseek-v4-flash", "deepseek-v4-flash-0731", "deepseek-v3.2", "glm-5.3", "glm-5.3-flash", "glm-5.2", "glm-5.1", "glm-5"}},
 	// Tencent Cloud's Token Plan (TokenHub): a general and a Hy plan on one
 	// sk-tp- key, served at their own endpoints under /plan, chat completions
 	// and Anthropic messages only (its Codex page asks for wire_api "chat").
@@ -377,8 +380,12 @@ func Presets() []PresetDef {
 	return out
 }
 
-// Preset finds a preset by id.
+// Preset finds a preset by id. The id the qianfan preset carried its first
+// day (qianfan-token-plan, v0.1.394) names it still.
 func Preset(id string) *PresetDef {
+	if id == "qianfan-token-plan" {
+		id = "baidu-qianfan"
+	}
 	for i := range presets {
 		if presets[i].ID == id {
 			return &presets[i]

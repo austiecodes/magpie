@@ -523,6 +523,12 @@ func normalize(p Provider) Provider {
 	}
 	p.Models = cleanList(p.Models)
 	p.Fallback = cleanList(p.Fallback)
+	// a provider saved under the id the qianfan preset carried its first
+	// day (qianfan-token-plan, v0.1.394) is the preset since renamed:
+	// its own id stays, so whatever the agents wired to it keeps routing
+	if p.Preset == "qianfan-token-plan" {
+		p.Preset = "baidu-qianfan"
+	}
 	if p.Routing != Ordered && p.Routing != Rotate && p.Routing != LeastUsed {
 		p.Routing = ""
 	}
