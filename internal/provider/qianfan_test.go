@@ -12,14 +12,14 @@ func TestQianfanTokenPlan(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// the plan's own endpoints, one base per protocol family; the plan has
-	// no model list, so NoList keeps the preset's models as its list
+	// the plan's own endpoints, one base per protocol family; the plans
+	// serve no model list, so the preset's models are the picker's list
 	if p.Chat != "https://qianfan.baidubce.com/v2/tokenplan/personal" || p.Responses != p.Chat ||
-		p.Anthropic != "https://qianfan.baidubce.com/anthropic/tokenplan/personal" || !Preset("baidu-qianfan").NoList {
+		p.Anthropic != "https://qianfan.baidubce.com/anthropic/tokenplan/personal" {
 		t.Fatalf("endpoints: %q %q %q", p.Chat, p.Responses, p.Anthropic)
 	}
-	// the personal and the team plan and pay as you go, each plan's bases
-	// under its own path, pay as you go at the v2 root
+	// the personal and the enterprise plan and pay as you go, each plan's
+	// bases under its own path, pay as you go at the v2 root
 	for _, r := range Preset("baidu-qianfan").Regions {
 		var chat, anthropic string
 		switch r.ID {

@@ -2462,7 +2462,7 @@ function subTile(x) {
 function tile(pr) {
   const b = pickRow(pr.icon || "generic", pr.name, editing?.preset === pr.id ? " on" : "");
   if (pr.sponsored) b.querySelector(".n").append(el("span", "badge", t("sponsored")));
-  b.title = pr.note || hostOf(pr.chat || pr.responses || pr.anthropic);
+  b.title = pr.note ? t(pr.note) : hostOf(pr.chat || pr.responses || pr.anthropic);
   if (pr.added) {
     b.append(addedMark(t("Added")));
     b.title = t("{name} is already added — open it", { name: pr.name });
@@ -2794,7 +2794,7 @@ function renderEditor(p, presetID) {
   {
     const h = el("div", "ehead");
     h.append(icon(p?.icon || pr?.icon || "generic"), el("b", "", p ? p.name : pr ? pr.name : t("Custom provider")));
-    if (pr?.note) h.append(el("span", "note", pr.note));
+    if (pr?.note) h.append(el("span", "note", t(pr.note)));
     h.append(el("span", "grow"));
     const site = pr?.website || p?.website || (p?.host ? "https://" + p.host : "");
     if (site) { const b = el("button", "link", hostOf(site) + " ↗"); b.onclick = () => api("open", { url: site }); h.append(b); }
