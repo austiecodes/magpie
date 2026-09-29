@@ -54,6 +54,10 @@ type Region struct {
 	Chat      string `json:"chat,omitempty"`
 	Responses string `json:"responses,omitempty"`
 	Anthropic string `json:"anthropic,omitempty"`
+	// Lists is set on a region that serves a model list although the
+	// preset as a whole has none to ask for (NoList): a provider at its
+	// endpoints is asked for it.
+	Lists bool `json:"lists,omitempty"`
 }
 
 // presets are ordered as they appear in the picker.
@@ -156,8 +160,10 @@ var presets = []PresetDef{
 		RegionLabel: "Plan", Regions: []Region{
 			{ID: "personal", Name: "Token Plan Personal", Chat: "https://qianfan.baidubce.com/v2/tokenplan/personal", Responses: "https://qianfan.baidubce.com/v2/tokenplan/personal", Anthropic: "https://qianfan.baidubce.com/anthropic/tokenplan/personal"},
 			{ID: "team", Name: "Token Plan Enterprise", Chat: "https://qianfan.baidubce.com/v2/tokenplan/team", Responses: "https://qianfan.baidubce.com/v2/tokenplan/team", Anthropic: "https://qianfan.baidubce.com/anthropic/tokenplan/team"},
-			{ID: "api", Name: "Pay as you go", Chat: "https://qianfan.baidubce.com/v2", Responses: "https://qianfan.baidubce.com/v2", Anthropic: "https://qianfan.baidubce.com/anthropic"},
+			{ID: "api", Name: "Pay as you go", Chat: "https://qianfan.baidubce.com/v2", Responses: "https://qianfan.baidubce.com/v2", Anthropic: "https://qianfan.baidubce.com/anthropic",
+				Lists: true},
 		},
+		NoList: true,
 		Models: []string{"qianfan-code-latest", "deepseek-v4.1-flash", "deepseek-v4-pro", "deepseek-v4-pro-0813",
 			"deepseek-v4-flash", "deepseek-v4-flash-0731", "glm-5.3", "glm-5.3-flash", "glm-5.2", "glm-5.1", "kimi-k2.6"}},
 	// Tencent Cloud's Token Plan (TokenHub): a general and a Hy plan on one

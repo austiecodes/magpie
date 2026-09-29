@@ -1,7 +1,11 @@
 package provider
 
 import (
+	"context"
+	"net/http"
+	"net/http/httptest"
 	"strings"
+	"sync/atomic"
 	"testing"
 
 	"github.com/yetone/magpie/internal/catalog"
@@ -56,5 +60,46 @@ func TestQianfanTokenPlan(t *testing.T) {
 	im, _ := imported("Qianfan", "bce-v3/x", endpoints{anthropic: "https://qianfan.baidubce.com/anthropic/tokenplan/personal"}, nil)
 	if im.Preset != "baidu-qianfan" || im.Icon != "baiducloud-color" {
 		t.Fatalf("imported: %+v", im)
+	}
+}
+
+// The plans answer no /models of their own, so a provider at their
+// endpoints gets the preset's models with no request and no error, while
+// pay as you go at the v2 root is asked and its list kept whole.
+func TestQianfanPlansListNothing(t *testing.T) {
+	t.Setenv("XDG_CONFIG_HOME", t.TempDir())
+	t.Setenv("XDG_CACHE_HOME", t.TempDir())
+	var asked int32
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		atomic.AddInt32(&asked, 1)
+		if r.URL.Path == "/v2/models" {
+			w.Write([]byte(`{"object":"list","data":[{"id":"ernie-x1.1"},{"id":"glm-5.3"},{"id":"kimi-k2.6"}]}`))
+			return
+		}
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	t.Cleanup(srv.Close)
+	base, err := FromPreset("baidu-qianfan")
+	if err != nil {
+		t.Fatal(err)
+	}
+	base.Key = "bce-v3/x"
+
+	plan := base
+	plan.Chat, plan.Responses = srv.URL+"/v2/tokenplan/personal", srv.URL+"/v2/tokenplan/personal"
+	plan.Anthropic = srv.URL+"/anthropic/tokenplan/personal"
+	ms, err := plan.Fetch(context.Background())
+	if err != nil {
+		t.Fatalf("plan fetch: %v", err)
+	}
+	if len(ms) != len(Preset("baidu-qianfan").Models) || asked != 0 {
+		t.Fatalf("plan: %d models, %d requests", len(ms), asked)
+	}
+
+	api := base
+	api.Chat, api.Responses = srv.URL+"/v2", srv.URL+"/v2"
+	api.Anthropic = srv.URL+"/anthropic"
+	if ms, err := api.Fetch(context.Background()); err != nil || len(ms) != 3 || atomic.LoadInt32(&asked) == 0 {
+		t.Fatalf("pay as you go: %d models, %d requests, err %v", len(ms), asked, err)
 	}
 }
