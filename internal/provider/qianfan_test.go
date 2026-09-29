@@ -75,6 +75,19 @@ func TestQianfanTokenPlan(t *testing.T) {
 	if p := normalize(Provider{Preset: "qianfan-token-plan"}); p.Preset != "baidu-qianfan" {
 		t.Fatalf("normalized: %+v", p)
 	}
+	// a plan's Get-a-key link is the preset's own page, pay as you go's
+	// the IAM page its keys are made on, taken from the region its
+	// endpoints sit at
+	planAt := normalize(Provider{Preset: "baidu-qianfan",
+		Chat: "https://qianfan.baidubce.com/v2/tokenplan/personal", Anthropic: "https://qianfan.baidubce.com/anthropic/tokenplan/personal"})
+	if planAt.KeysURL != Preset("baidu-qianfan").KeysURL {
+		t.Fatalf("plan keys: %q", planAt.KeysURL)
+	}
+	apiAt := normalize(Provider{Preset: "baidu-qianfan",
+		Chat: "https://qianfan.baidubce.com/v2", Anthropic: "https://qianfan.baidubce.com/anthropic"})
+	if apiAt.KeysURL != "https://console.bce.baidu.com/iam/#/iam/apikey/list" {
+		t.Fatalf("pay as you go keys: %q", apiAt.KeysURL)
+	}
 }
 
 // The plans answer no /models of their own, so a provider at their

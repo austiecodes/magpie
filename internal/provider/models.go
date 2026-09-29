@@ -197,18 +197,22 @@ func (p Provider) fetchOne(ctx context.Context) ([]catalog.Model, string, error)
 // regions that serves a model list although the preset as a whole has
 // none (Region.Lists): Qianfan's pay as you go at the v2 root answers
 // /v2/models, while the plans' /tokenplan/ endpoints answer nothing.
-// The paths are what match — the host may be another (a mirror, a test).
 func (p Provider) listRegion(pr *PresetDef) bool {
-	for i := range pr.Regions {
-		r := pr.Regions[i]
-		if !r.Lists {
-			continue
+	for _, r := range pr.Regions {
+		if r.Lists && p.atRegion(r) {
+			return true
 		}
-		for _, a := range []string{p.Chat, p.Responses, p.Anthropic} {
-			for _, b := range []string{r.Chat, r.Responses, r.Anthropic} {
-				if a != "" && b != "" && basePath(a) == basePath(b) {
-					return true
-				}
+	}
+	return false
+}
+
+// atRegion reports whether the provider sits at a region's endpoints,
+// by path — the host may be another (a mirror, a test).
+func (p Provider) atRegion(r Region) bool {
+	for _, a := range []string{p.Chat, p.Responses, p.Anthropic} {
+		for _, b := range []string{r.Chat, r.Responses, r.Anthropic} {
+			if a != "" && b != "" && basePath(a) == basePath(b) {
+				return true
 			}
 		}
 	}

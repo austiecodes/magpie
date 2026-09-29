@@ -558,6 +558,14 @@ func normalize(p Provider) Provider {
 		if p.KeysURL == "" {
 			p.KeysURL = pr.KeysURL
 		}
+		// a region's own key page goes with its endpoints (Qianfan's pay
+		// as you go makes its keys on the IAM page, the plans at the
+		// plan console)
+		for _, r := range pr.Regions {
+			if r.KeysURL != "" && p.atRegion(r) {
+				p.KeysURL = r.KeysURL
+			}
+		}
 	}
 	return p
 }
